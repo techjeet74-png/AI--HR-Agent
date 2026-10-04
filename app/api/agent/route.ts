@@ -10,7 +10,8 @@ export async function POST(request:Request){
    ok:true,
    intent,
    systemPrompt:getHRSystemPrompt(),
-   response:"HR Agent foundation is ready. Connect your approved LLM provider and HR database to execute this request.",
+   tools:["listEmployees","probationEnding","createApproval"],
+   response:"Request classified and routed to the governed HR tool layer. Connect authentication and an approved AI provider to execute the requested operation.",
    requiresApproval:["payroll","compliance","employee_lifecycle"].includes(intent)
  });
 }
