@@ -1,0 +1,6 @@
+"use client";
+import {useState} from "react";
+import {useRouter} from "next/navigation";
+export default function Login(){const [email,setEmail]=useState("");const [password,setPassword]=useState("");const [error,setError]=useState("");const router=useRouter();
+async function submit(e:React.FormEvent){e.preventDefault();setError("");const r=await fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok){setError(d.error||"Login failed");return}router.push("/dashboard");router.refresh();}
+return <main className="shell"><section className="content" style={{maxWidth:480}}><div className="card"><h1>Agrolt HR Login</h1><p>Authorized HR users only.</p><form onSubmit={submit} style={{display:"grid",gap:12}}><input required type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} style={{padding:12}}/><input required type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} style={{padding:12}}/><button style={{padding:12}}>Sign in</button></form>{error&&<p style={{color:"crimson"}}>{error}</p>}</div></section></main>}
