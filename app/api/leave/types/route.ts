@@ -1,0 +1,1 @@
+import {NextResponse} from "next/server";import {db} from "@/lib/db";import {getSession} from "@/lib/auth/session";export async function GET(){if(!(await getSession()))return NextResponse.json({error:"Unauthorized"},{status:401});return NextResponse.json({types:await db.leaveType.findMany({where:{active:true},orderBy:{name:"asc"}})});}

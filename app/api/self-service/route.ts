@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {db} from "@/lib/db";import {getSession} from "@/lib/auth/session";
+export async function GET(){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});const e=await db.employee.findUnique({where:{userId:s.userId},include:{leaveRequests:{include:{leaveType:true},orderBy:{createdAt:"desc"}},attendances:{orderBy:{date:"desc"},take:31}}});return NextResponse.json({employee:e});}
