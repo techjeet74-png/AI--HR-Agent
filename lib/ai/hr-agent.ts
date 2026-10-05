@@ -1,0 +1,10 @@
+import {db} from "@/lib/db";
+export async function answerHR(query:string){
+ const q=query.toLowerCase();
+ if(q.includes("probation")){const now=new Date(), end=new Date(now);end.setDate(end.getDate()+30);const rows=await db.employee.findMany({where:{probationEnd:{gte:now,lte:end}},orderBy:{probationEnd:"asc"}});return {intent:"probation",summary:`${rows.length} employee(s) have probation ending within 30 days.`,data:rows.map(e=>({code:e.employeeCode,name:`${e.firstName} ${e.lastName||""}`,department:e.department,probationEnd:e.probationEnd}))};}
+ if(q.includes("attendance")){const rows=await db.attendance.findMany({orderBy:{date:"desc"},take:20,include:{employee:true}});return {intent:"attendance",summary:`Showing the latest ${rows.length} attendance records.`,data:rows.map(r=>({employee:r.employee.firstName+" "+(r.employee.lastName||""),date:r.date,status:r.status,workedMinutes:r.workedMinutes,overtimeMinutes:r.overtimeMinutes}))};}
+ if(q.includes("leave")){const rows=await db.leaveRequest.findMany({where:{status:"PENDING"},include:{employee:true,leaveType:true},orderBy:{createdAt:"asc"}});return {intent:"leave",summary:`${rows.length} leave request(s) are pending approval.`,data:rows.map(r=>({employee:r.employee.firstName+" "+(r.employee.lastName||""),type:r.leaveType.name,days:r.days,from:r.fromDate,to:r.toDate}))};}
+ if(q.includes("payroll")){const rows=await db.payrollPeriod.findMany({orderBy:[{year:"desc"},{month:"desc"}],take:6,include:{items:true}});return {intent:"payroll",summary:`Showing the latest ${rows.length} payroll period(s). Payroll writes remain approval-controlled.`,data:rows.map(r=>({period:`${r.year}-${String(r.month).padStart(2,"0")}`,status:r.status,employees:r.items.length}))};}
+ const [employees,jobs,candidates]=await Promise.all([db.employee.count(),db.job.count({where:{active:true}}),db.candidate.count()]);
+ return {intent:"overview",summary:`HR overview: ${employees} employees, ${jobs} active jobs and ${candidates} candidates.`,data:{employees,jobs,candidates}};
+}
