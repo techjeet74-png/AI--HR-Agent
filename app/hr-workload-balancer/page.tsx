@@ -1,0 +1,6 @@
+"use client";
+import {useEffect,useState} from "react";
+export default function WorkloadBalancer(){
+ const [data,setData]=useState<any>(null); const load=()=>fetch("/api/hr-workload-balancer").then(r=>r.json()).then(setData); useEffect(()=>{load()},[]);
+ async function balance(){await fetch("/api/hr-workload-balancer",{method:"POST"});load()}
+ return <main className="shell"><section className="content"><h1>AI HR Workload Balancer</h1><p>Recommend the best HR Executive for each task using workload, availability, responsibility and priority fit.</p><button onClick={balance}>Generate Assignment Recommendations</button><div className="grid">{data?.workload?.map((x:any)=><div className="card" key={x.userId}><h3>{x.name}</h3><p>Active Tasks: {x.activeTasks}</p></div>)}</div>{data?.recommendations?.map((x:any)=><div className="card" key={x.id}><h3>{x.task.title}</h3><p>Recommended User: {x.recommendedUserId}</p><p>Score: {x.totalScore.toFixed(1)}</p><p>{x.rationale}</p></div>)}</section></main>}
