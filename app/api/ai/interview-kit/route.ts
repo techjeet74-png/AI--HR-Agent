@@ -1,2 +1,67 @@
-import {NextResponse}from"next/server";import{getSession}from"@/lib/auth/session";import{prisma}from"@/lib/db";
-export async function POST(req:Request){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});const b=await req.json().catch(()=>({}));const candidateId=String(b.candidateId||"");const role=String(b.role||"");if(!candidateId||!role)return NextResponse.json({error:"candidateId and role required"},{status:400});const c=await prisma.candidate.findUnique({where:{id:candidateId},include:{candidateSkills:{include:{skill:true}}});if(!c)return NextResponse.json({error:"Candidate not found"},{status:404});const questions=["Walk us through your experience relevant to "+role+".","Describe a difficult problem you solved and how you approached it.","Which skills are you strongest in, and where are you currently developing?","Describe a situation where you had to work with a difficult stakeholder.","What would you prioritize in your first 90 days?"];const rubric={criteria:["role knowledge","problem solving","communication","ownership","learning agility"],scale:"1-5"};const kit=await prisma.interviewKit.create({data:{candidateId,role,questions,rubric}});return NextResponse.json({kit,humanReviewRequired:true});}
+import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth/session";
+import { prisma } from "@/lib/db";
+
+export async function POST(req: Request) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const candidateId = String(body.candidateId || "");
+  const role = String(body.role || "");
+
+  if (!candidateId || !role) {
+    return NextResponse.json(
+      { error: "candidateId and role required" },
+      { status: 400 },
+    );
+  }
+
+  const candidate = await prisma.candidate.findUnique({
+    where: { id: candidateId },
+    include: {
+      candidateSkills: {
+        include: { skill: true },
+      },
+    },
+  });
+
+  if (!candidate) {
+    return NextResponse.json(
+      { error: "Candidate not found" },
+      { status: 404 },
+    );
+  }
+
+  const questions = [
+    `Walk us through your experience relevant to ${role}.`,
+    "Describe a difficult problem you solved and how you approached it.",
+    "Which skills are you strongest in, and where are you currently developing?",
+    "Describe a situation where you had to work with a difficult stakeholder.",
+    "What would you prioritize in your first 90 days?",
+  ];
+
+  const rubric = {
+    criteria: [
+      "role knowledge",
+      "problem solving",
+      "communication",
+      "ownership",
+      "learning agility",
+    ],
+    scale: "1-5",
+  };
+
+  const kit = await prisma.interviewKit.create({
+    data: {
+      candidateId,
+      role,
+      questions,
+      rubric,
+    },
+  });
+
+  return NextResponse.json({ kit, humanReviewRequired: true });
+}
