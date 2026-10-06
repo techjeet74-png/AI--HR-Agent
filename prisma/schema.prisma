@@ -316,3 +316,59 @@ model OnboardingTask {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model EmployeeDocument {
+  id String @id @default(cuid())
+  employeeId String
+  documentType String
+  title String
+  fileUrl String?
+  status String @default("PENDING")
+  expiryDate DateTime?
+  verifiedBy String?
+  verifiedAt DateTime?
+  notes String?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([employeeId,status])
+}
+model LeaveBalance {
+  id String @id @default(cuid())
+  employeeId String
+  leaveTypeId String
+  year Int
+  opening Float @default(0)
+  credited Float @default(0)
+  used Float @default(0)
+  pending Float @default(0)
+  employee Employee @relation(fields:[employeeId],references:[id])
+  leaveType LeaveType @relation(fields:[leaveTypeId],references:[id])
+  @@unique([employeeId,leaveTypeId,year])
+}
+model RecruitmentActivity {
+  id String @id @default(cuid())
+  applicationId String
+  actorId String
+  fromStatus CandidateStatus?
+  toStatus CandidateStatus
+  note String?
+  actor User @relation(fields:[actorId],references:[id])
+  application Application @relation(fields:[applicationId],references:[id])
+  createdAt DateTime @default(now())
+}
+model AttendanceCorrection {
+  id String @id @default(cuid())
+  attendanceId String
+  requestedBy String
+  reason String
+  proposedStatus AttendanceStatus?
+  proposedInTime DateTime?
+  proposedOutTime DateTime?
+  status String @default("PENDING")
+  decidedBy String?
+  decisionNote String?
+  attendance Attendance @relation(fields:[attendanceId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
