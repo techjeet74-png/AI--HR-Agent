@@ -738,3 +738,21 @@ model HRTaskEscalation {
   task HROrchestratedTask @relation(fields:[taskId],references:[id])
   @@index([taskId,level,status])
 }
+
+model HRTaskPriorityScore {
+  id String @id @default(cuid())
+  taskId String
+  urgency Float
+  impact Float
+  complianceRisk Float
+  dependencyRisk Float
+  workloadFactor Float
+  deadlineRisk Float
+  score Float
+  priorityBand String
+  rationale String
+  generatedAt DateTime @default(now())
+  task HROrchestratedTask @relation(fields:[taskId],references:[id])
+  @@index([taskId,generatedAt])
+  @@index([priorityBand,score])
+}
