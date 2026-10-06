@@ -1,0 +1,1 @@
+import {NextResponse} from "next/server";import {getOdooConfig} from "@/lib/integrations/odoo";import {getSession} from "@/lib/auth/session";export async function GET(){if(!(await getSession()))return NextResponse.json({error:"Unauthorized"},{status:401});const c=getOdooConfig();return NextResponse.json({configured:!!c,baseUrl:c?.baseUrl||null});}
