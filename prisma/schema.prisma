@@ -498,3 +498,74 @@ model AssetAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model HRDocument {
+  id String @id @default(cuid())
+  employeeId String?
+  title String
+  documentType String
+  sourceType String @default("UPLOAD")
+  storageRef String?
+  mimeType String?
+  fileSize Int?
+  contentHash String?
+  status String @default("PROCESSING")
+  extractedText String?
+  language String?
+  confidence Float?
+  issueDate DateTime?
+  expiryDate DateTime?
+  issuer String?
+  documentNumber String?
+  metadata Json?
+  employee Employee? @relation(fields:[employeeId],references:[id])
+  pages HRDocumentPage[]
+  chunks HRDocumentChunk[]
+  extractions HRDocumentExtraction[]
+  workflowSuggestions HRDocumentWorkflowSuggestion[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([employeeId,status])
+  @@index([documentType,expiryDate])
+}
+model HRDocumentPage {
+  id String @id @default(cuid())
+  documentId String
+  pageNo Int
+  text String?
+  ocrConfidence Float?
+  metadata Json?
+  document HRDocument @relation(fields:[documentId],references:[id])
+  @@unique([documentId,pageNo])
+}
+model HRDocumentChunk {
+  id String @id @default(cuid())
+  documentId String
+  chunkIndex Int
+  content String
+  keywords Json?
+  metadata Json?
+  document HRDocument @relation(fields:[documentId],references:[id])
+  @@unique([documentId,chunkIndex])
+}
+model HRDocumentExtraction {
+  id String @id @default(cuid())
+  documentId String
+  field String
+  value String
+  confidence Float?
+  sourcePage Int?
+  verified Boolean @default(false)
+  document HRDocument @relation(fields:[documentId],references:[id])
+  @@index([documentId,field])
+}
+model HRDocumentWorkflowSuggestion {
+  id String @id @default(cuid())
+  documentId String
+  action String
+  reason String
+  riskLevel String @default("MEDIUM")
+  status String @default("PENDING_REVIEW")
+  document HRDocument @relation(fields:[documentId],references:[id])
+  createdAt DateTime @default(now())
+}
