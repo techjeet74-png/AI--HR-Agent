@@ -1,0 +1,3 @@
+import{NextResponse}from"next/server";import{getSession}from"@/lib/auth/session";import{prisma}from"@/lib/db";
+export async function GET(){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});return NextResponse.json({notifications:await prisma.notification.findMany({where:{userId:s.userId},orderBy:{createdAt:"desc"},take:50})});}
+export async function PATCH(req:Request){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});const b=await req.json();if(!b.id)return NextResponse.json({error:"id required"},{status:400});return NextResponse.json({notification:await prisma.notification.update({where:{id:b.id},data:{status:"READ",readAt:new Date()}})});}

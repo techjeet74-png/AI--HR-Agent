@@ -7,10 +7,36 @@ enum ApprovalStatus { PENDING APPROVED REJECTED CANCELLED }
 enum AttendanceStatus { PRESENT ABSENT HALF_DAY LATE WEEK_OFF HOLIDAY ON_LEAVE }
 enum LeaveStatus { PENDING APPROVED REJECTED CANCELLED }
 enum PayrollStatus { DRAFT PROCESSING PENDING_APPROVAL APPROVED PAID LOCKED }
-model User { id String @id @default(cuid()); email String @unique; name String; passwordHash String; role Role @default(EMPLOYEE); active Boolean @default(true); employee Employee?; auditLogs AuditLog[]; approvals ApprovalRequest[] @relation("Approver"); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model Employee { id String @id @default(cuid()); employeeCode String @unique; firstName String; lastName String?; email String? @unique; phone String?; department String; designation String; location String; joiningDate DateTime; probationEnd DateTime?; status EmploymentStatus @default(PROBATION); managerId String?; manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id]); reports Employee[] @relation("EmployeeManager"); user User? @relation(fields:[userId],references:[id]); userId String? @unique; applications Application[]; attendances Attendance[]; leaveRequests LeaveRequest[]; payrollItems PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model Job { id String @id @default(cuid()); title String; department String; location String; description String; openings Int @default(1); active Boolean @default(true); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model Candidate { id String @id @default(cuid()); name String; email String?; phone String?; resumeUrl String?; skills String?; experience Float?; source String?; status CandidateStatus @default(APPLIED); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+model User {
+  agentRuns AgentRun[]
+  notifications Notification[]
+  workflowTasks WorkflowTask[]
+  evaluations CandidateEvaluation[]
+  interviewFeedbacks InterviewFeedback[]
+  onboardingCases OnboardingCase[]
+  id String @id @default(cuid()); email String @unique; name String; passwordHash String; role Role @default(EMPLOYEE); active Boolean @default(true); employee Employee?; auditLogs AuditLog[]; approvals ApprovalRequest[] @relation("Approver"); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+model Employee {
+  skills EmployeeSkill[]
+  goals Goal[]
+  checkIns PerformanceCheckIn[]
+  learningPlans LearningPlan[]
+  pulseResponses PulseResponse[]
+  riskSignals RiskSignal[]
+  workflowTasks WorkflowTask[]
+  onboardingCases OnboardingCase[]
+  id String @id @default(cuid()); employeeCode String @unique; firstName String; lastName String?; email String? @unique; phone String?; department String; designation String; location String; joiningDate DateTime; probationEnd DateTime?; status EmploymentStatus @default(PROBATION); managerId String?; manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id]); reports Employee[] @relation("EmployeeManager"); user User? @relation(fields:[userId],references:[id]); userId String? @unique; applications Application[]; attendances Attendance[]; leaveRequests LeaveRequest[]; payrollItems PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+model Job {
+  skillRequirements JobSkill[]
+  evaluations CandidateEvaluation[]
+  id String @id @default(cuid()); title String; department String; location String; description String; openings Int @default(1); active Boolean @default(true); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+model Candidate {
+  candidateSkills CandidateSkill[]
+  interviewKits InterviewKit[]
+  evaluations CandidateEvaluation[]
+  onboardingCases OnboardingCase[]
+  resumeProfiles ResumeProfile[]
+  interviewFeedbacks InterviewFeedback[]
+  id String @id @default(cuid()); name String; email String?; phone String?; resumeUrl String?; skills String?; experience Float?; source String?; status CandidateStatus @default(APPLIED); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Application { id String @id @default(cuid()); jobId String; candidateId String; employeeId String?; status CandidateStatus @default(APPLIED); score Float?; notes String?; job Job @relation(fields:[jobId],references:[id]); candidate Candidate @relation(fields:[candidateId],references:[id]); employee Employee? @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([jobId,candidateId]) }
 model Attendance { id String @id @default(cuid()); employeeId String; date DateTime; status AttendanceStatus; inTime DateTime?; outTime DateTime?; workedMinutes Int?; overtimeMinutes Int?; remarks String?; employee Employee @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([employeeId,date]) }
 model LeaveType { id String @id @default(cuid()); name String @unique; code String @unique; annualQuota Float @default(0); active Boolean @default(true); requests LeaveRequest[] }
@@ -20,3 +46,273 @@ model PayrollItem { id String @id @default(cuid()); periodId String; employeeId 
 model ComplianceRecord { id String @id @default(cuid()); period String; category String; dueDate DateTime?; status String @default("PENDING"); reference String?; notes String?; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model ApprovalRequest { id String @id @default(cuid()); action String; entityType String; entityId String; requestedBy String; approverId String?; status ApprovalStatus @default(PENDING); reason String?; decisionNote String?; requestedAt DateTime @default(now()); decidedAt DateTime?; approver User? @relation("Approver",fields:[approverId],references:[id]) }
 model AuditLog { id String @id @default(cuid()); userId String?; action String; entityType String; entityId String?; metadata Json?; createdAt DateTime @default(now()); user User? @relation(fields:[userId],references:[id]) }
+
+model Agent {
+  id String @id @default(cuid())
+  key String @unique
+  name String
+  description String
+  category String
+  enabled Boolean @default(true)
+  requiresApproval Boolean @default(true)
+  runs AgentRun[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model AgentRun {
+  id String @id @default(cuid())
+  agentId String
+  requestedBy String
+  input Json?
+  output Json?
+  status String @default("QUEUED")
+  riskLevel String @default("LOW")
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  agent Agent @relation(fields:[agentId],references:[id])
+  requester User @relation(fields:[requestedBy],references:[id])
+}
+model Skill {
+  id String @id @default(cuid())
+  name String @unique
+  category String
+  description String?
+  employees EmployeeSkill[]
+  jobRequirements JobSkill[]
+  candidateSkills CandidateSkill[]
+  createdAt DateTime @default(now())
+}
+model EmployeeSkill {
+  id String @id @default(cuid())
+  employeeId String
+  skillId String
+  level Int @default(1)
+  verified Boolean @default(false)
+  lastAssessedAt DateTime?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  skill Skill @relation(fields:[skillId],references:[id])
+  @@unique([employeeId,skillId])
+}
+model JobSkill {
+  id String @id @default(cuid())
+  jobId String
+  skillId String
+  requiredLevel Int @default(1)
+  weight Float @default(1)
+  job Job @relation(fields:[jobId],references:[id])
+  skill Skill @relation(fields:[skillId],references:[id])
+  @@unique([jobId,skillId])
+}
+model CandidateSkill {
+  id String @id @default(cuid())
+  candidateId String
+  skillId String
+  level Int @default(1)
+  confidence Float @default(0)
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  skill Skill @relation(fields:[skillId],references:[id])
+  @@unique([candidateId,skillId])
+}
+model Goal {
+  id String @id @default(cuid())
+  employeeId String
+  title String
+  description String?
+  target String?
+  progress Float @default(0)
+  status String @default("DRAFT")
+  dueDate DateTime?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model PerformanceCheckIn {
+  id String @id @default(cuid())
+  employeeId String
+  summary String?
+  managerFeedback String?
+  employeeReflection String?
+  score Float?
+  createdAt DateTime @default(now())
+  employee Employee @relation(fields:[employeeId],references:[id])
+}
+model LearningPlan {
+  id String @id @default(cuid())
+  employeeId String
+  title String
+  skillGap String
+  recommendedAction String
+  status String @default("PLANNED")
+  dueDate DateTime?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model PulseSurvey {
+  id String @id @default(cuid())
+  title String
+  question String
+  status String @default("OPEN")
+  opensAt DateTime @default(now())
+  closesAt DateTime?
+  responses PulseResponse[]
+  createdAt DateTime @default(now())
+}
+model PulseResponse {
+  id String @id @default(cuid())
+  surveyId String
+  employeeId String
+  score Int
+  comment String?
+  survey PulseSurvey @relation(fields:[surveyId],references:[id])
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  @@unique([surveyId,employeeId])
+}
+model RiskSignal {
+  id String @id @default(cuid())
+  employeeId String
+  type String
+  score Float
+  severity String
+  explanation String
+  resolved Boolean @default(false)
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+}
+model InterviewKit {
+  id String @id @default(cuid())
+  candidateId String
+  role String
+  questions Json
+  rubric Json
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  createdAt DateTime @default(now())
+}
+
+model ResumeProfile {
+  id String @id @default(cuid())
+  candidateId String
+  summary String?
+  skills Json?
+  experience Json?
+  education Json?
+  score Float?
+  confidence Float?
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([candidateId])
+}
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  title String
+  message String
+  channel String @default("IN_APP")
+  status String @default("QUEUED")
+  readAt DateTime?
+  user User @relation(fields:[userId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([userId,status])
+}
+model WorkflowTask {
+  id String @id @default(cuid())
+  userId String?
+  employeeId String?
+  title String
+  description String?
+  priority String @default("MEDIUM")
+  status String @default("OPEN")
+  dueDate DateTime?
+  user User? @relation(fields:[userId],references:[id])
+  employee Employee? @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status,priority])
+}
+model KnowledgeDocument {
+  id String @id @default(cuid())
+  title String
+  category String
+  source String?
+  version String?
+  content String
+  active Boolean @default(true)
+  chunks KnowledgeChunk[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model KnowledgeChunk {
+  id String @id @default(cuid())
+  documentId String
+  chunkIndex Int
+  content String
+  keywords String?
+  document KnowledgeDocument @relation(fields:[documentId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([documentId,chunkIndex])
+}
+
+model CandidateEvaluation {
+  id String @id @default(cuid())
+  candidateId String
+  jobId String
+  evaluatorId String
+  skillScore Float @default(0)
+  interviewScore Float @default(0)
+  overallScore Float @default(0)
+  strengths Json?
+  gaps Json?
+  recommendation String?
+  rationale String?
+  status String @default("DRAFT")
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  job Job @relation(fields:[jobId],references:[id])
+  evaluator User @relation(fields:[evaluatorId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model InterviewFeedback {
+  id String @id @default(cuid())
+  candidateId String
+  interviewerId String
+  role String
+  technicalScore Float?
+  communicationScore Float?
+  problemSolvingScore Float?
+  ownershipScore Float?
+  overallScore Float?
+  strengths String?
+  concerns String?
+  recommendation String?
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  interviewer User @relation(fields:[interviewerId],references:[id])
+  createdAt DateTime @default(now())
+}
+model OnboardingCase {
+  id String @id @default(cuid())
+  candidateId String
+  employeeId String?
+  status String @default("PREBOARDING")
+  startDate DateTime?
+  ownerId String
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  employee Employee? @relation(fields:[employeeId],references:[id])
+  owner User @relation(fields:[ownerId],references:[id])
+  tasks OnboardingTask[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model OnboardingTask {
+  id String @id @default(cuid())
+  caseId String
+  title String
+  category String
+  required Boolean @default(true)
+  status String @default("PENDING")
+  dueDate DateTime?
+  completedAt DateTime?
+  case OnboardingCase @relation(fields:[caseId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
