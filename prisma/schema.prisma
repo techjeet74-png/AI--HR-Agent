@@ -610,3 +610,58 @@ model ComplianceEvidence {
   instance ComplianceInstance @relation(fields:[instanceId],references:[id])
   @@index([instanceId,verificationStatus])
 }
+
+model ReconciliationRun {
+  id String @id @default(cuid())
+  periodLabel String
+  category String
+  status String @default("DRAFT")
+  inputSummary Json?
+  resultSummary Json?
+  createdBy String?
+  reviewedBy String?
+  approvedBy String?
+  approvedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  exceptions ReconciliationException[]
+  @@index([periodLabel,category,status])
+}
+model ReconciliationException {
+  id String @id @default(cuid())
+  runId String
+  employeeId String?
+  exceptionType String
+  severity String @default("MEDIUM")
+  field String?
+  expectedValue String?
+  actualValue String?
+  variance String?
+  finding String
+  evidence Json?
+  status String @default("OPEN")
+  ownerId String?
+  reviewerId String?
+  resolvedAt DateTime?
+  resolutionNote String?
+  run ReconciliationRun @relation(fields:[runId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([runId,status,severity])
+  @@index([employeeId,exceptionType])
+}
+model ReconciliationCapa {
+  id String @id @default(cuid())
+  exceptionId String
+  rootCause String?
+  correctiveAction String
+  preventiveAction String?
+  ownerId String?
+  targetDate DateTime?
+  status String @default("OPEN")
+  effectivenessCheck String?
+  closedAt DateTime?
+  exception ReconciliationException @relation(fields:[exceptionId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
