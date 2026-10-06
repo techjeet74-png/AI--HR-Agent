@@ -498,3 +498,55 @@ model AssetAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model AgentPlan {
+  id String @id @default(cuid())
+  name String
+  objective String
+  status String @default("DRAFT")
+  priority String @default("MEDIUM")
+  requestedBy String
+  approvedBy String?
+  startedAt DateTime?
+  completedAt DateTime?
+  summary String?
+  steps AgentPlanStep[]
+  requestedUser User @relation("AgentPlanRequester",fields:[requestedBy],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model AgentPlanStep {
+  id String @id @default(cuid())
+  planId String
+  stepNo Int
+  agentKey String
+  action String
+  input Json?
+  output Json?
+  status String @default("PENDING")
+  riskLevel String @default("LOW")
+  requiresApproval Boolean @default(false)
+  approvalId String?
+  error String?
+  retryCount Int @default(0)
+  startedAt DateTime?
+  completedAt DateTime?
+  plan AgentPlan @relation(fields:[planId],references:[id])
+  createdAt DateTime @default(now())
+  @@unique([planId,stepNo])
+  @@index([status,agentKey])
+}
+model AgentEscalation {
+  id String @id @default(cuid())
+  planId String?
+  stepId String?
+  reason String
+  severity String @default("MEDIUM")
+  status String @default("OPEN")
+  assignedTo String?
+  resolvedAt DateTime?
+  resolution String?
+  plan AgentPlan? @relation(fields:[planId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([status,severity])
+}
