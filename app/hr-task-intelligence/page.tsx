@@ -1,0 +1,6 @@
+"use client";
+import {useEffect,useState} from "react";
+export default function TaskIntelligence(){
+ const [data,setData]=useState<any>(null); const load=()=>fetch("/api/hr-task-intelligence").then(r=>r.json()).then(setData); useEffect(()=>{load()},[]);
+ async function score(){await fetch("/api/hr-task-intelligence",{method:"POST"});load()}
+ return <main className="shell"><section className="content"><h1>AI HR Task Intelligence</h1><p>Explainable task prioritization using urgency, impact, compliance risk, dependencies and deadline risk.</p><div className="grid"><div className="card"><b>{data?.critical??"-"}</b><p>Critical</p></div><div className="card"><b>{data?.high??"-"}</b><p>High</p></div><div className="card"><b>{data?.medium??"-"}</b><p>Medium</p></div><div className="card"><b>{data?.low??"-"}</b><p>Low</p></div></div><button onClick={score}>Recalculate Priority</button>{data?.tasks?.map((x:any)=><div className="card" key={x.id}><h3>{x.task.title} — {x.priorityBand}</h3><p>Score: {x.score.toFixed(1)}</p><p>{x.rationale}</p></div>)}</section></main>}
