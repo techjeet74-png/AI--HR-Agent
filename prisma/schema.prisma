@@ -88,7 +88,8 @@ model User {
   auditLogs AuditLog[]
   approvals ApprovalRequest[] @relation("Approver")
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt }
+  updatedAt DateTime @updatedAt
+}
 
 model Employee {
   skills EmployeeSkill[]
@@ -121,7 +122,8 @@ model Employee {
   leaveRequests LeaveRequest[]
   payrollItems PayrollItem[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt }
+  updatedAt DateTime @updatedAt
+}
 
 model Job {
   skillRequirements JobSkill[]
@@ -135,7 +137,8 @@ model Job {
   active Boolean @default(true)
   applications Application[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt }
+  updatedAt DateTime @updatedAt
+}
 
 model Candidate {
   candidateSkills CandidateSkill[]
@@ -155,7 +158,8 @@ model Candidate {
   status CandidateStatus @default(APPLIED)
   applications Application[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt }
+  updatedAt DateTime @updatedAt
+}
 
 model Application {
   id String @id @default(cuid())
