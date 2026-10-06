@@ -1,0 +1,1 @@
+import{NextResponse}from"next/server";import{getSession}from"@/lib/auth/session";export async function GET(){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});return NextResponse.json({configured:Boolean(process.env.AI_GATEWAY_API_KEY),model:process.env.AI_MODEL||"openai/gpt-5.6-sol",provider:"Vercel AI Gateway"});}
