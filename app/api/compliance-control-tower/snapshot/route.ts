@@ -1,0 +1,3 @@
+import{NextResponse}from"next/server";import{getSession}from"@/lib/auth/session";import{db}from"@/lib/db";import{buildControlSnapshot}from"@/lib/compliance/control-tower";
+export async function GET(){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});const latest=await db.complianceControlSnapshot.findFirst({orderBy:{createdAt:"desc"}});return NextResponse.json({snapshot:latest});}
+export async function POST(){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});return NextResponse.json({snapshot:await buildControlSnapshot(s.userId)},{status:201});}
