@@ -498,3 +498,90 @@ model AssetAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model OrgUnit {
+  id String @id @default(cuid())
+  name String
+  code String? @unique
+  type String @default("DEPARTMENT")
+  parentId String?
+  managerEmployeeId String?
+  budget Decimal? @db.Decimal(14,2)
+  active Boolean @default(true)
+  parent OrgUnit? @relation("OrgHierarchy",fields:[parentId],references:[id])
+  children OrgUnit[] @relation("OrgHierarchy")
+  manager Employee? @relation("OrgUnitManager",fields:[managerEmployeeId],references:[id])
+  positions PositionPlan[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model PositionPlan {
+  id String @id @default(cuid())
+  orgUnitId String
+  title String
+  grade String?
+  sanctionedCount Int @default(1)
+  filledCount Int @default(0)
+  targetCount Int?
+  annualCost Decimal? @db.Decimal(14,2)
+  criticality String @default("MEDIUM")
+  status String @default("ACTIVE")
+  orgUnit OrgUnit @relation(fields:[orgUnitId],references:[id])
+  workforcePlans WorkforcePlan[]
+  vacancies WorkforceVacancy[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([orgUnitId,status])
+}
+model WorkforcePlan {
+  id String @id @default(cuid())
+  name String
+  periodStart DateTime
+  periodEnd DateTime
+  status String @default("DRAFT")
+  assumptions Json?
+  totalSanctioned Int @default(0)
+  totalTarget Int @default(0)
+  totalProjected Int @default(0)
+  projectedCost Decimal? @db.Decimal(14,2)
+  positions PositionPlan[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model WorkforceVacancy {
+  id String @id @default(cuid())
+  positionId String
+  requiredBy DateTime?
+  priority String @default("MEDIUM")
+  reason String
+  replacementEmployeeId String?
+  status String @default("OPEN")
+  position PositionPlan @relation(fields:[positionId],references:[id])
+  replacementEmployee Employee? @relation(fields:[replacementEmployeeId],references:[id])
+  createdAt DateTime @default(now())
+}
+model AttritionSignal {
+  id String @id @default(cuid())
+  employeeId String
+  riskScore Float
+  riskLevel String
+  confidence Float
+  evidence Json
+  recommendedActions Json?
+  status String @default("REVIEW")
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([riskLevel,riskScore])
+}
+model CriticalRoleRisk {
+  id String @id @default(cuid())
+  positionId String
+  riskScore Float
+  riskLevel String
+  evidence Json
+  mitigation Json?
+  status String @default("REVIEW")
+  position PositionPlan @relation(fields:[positionId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([riskLevel,riskScore])
+}
