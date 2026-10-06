@@ -7,19 +7,27 @@ enum ApprovalStatus { PENDING APPROVED REJECTED CANCELLED }
 enum AttendanceStatus { PRESENT ABSENT HALF_DAY LATE WEEK_OFF HOLIDAY ON_LEAVE }
 enum LeaveStatus { PENDING APPROVED REJECTED CANCELLED }
 enum PayrollStatus { DRAFT PROCESSING PENDING_APPROVAL APPROVED PAID LOCKED }
-model User {\n  agentRuns AgentRun[]\n  notifications Notification[]\n  workflowTasks WorkflowTask[]\n  id String @id @default(cuid()); email String @unique; name String; passwordHash String; role Role @default(EMPLOYEE); active Boolean @default(true); employee Employee?; auditLogs AuditLog[]; approvals ApprovalRequest[] @relation("Approver"); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+model User {
+  agentRuns AgentRun[]
+  notifications Notification[]
+  workflowTasks WorkflowTask[]
+  id String @id @default(cuid()); email String @unique; name String; passwordHash String; role Role @default(EMPLOYEE); active Boolean @default(true); employee Employee?; auditLogs AuditLog[]; approvals ApprovalRequest[] @relation("Approver"); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Employee {
   skills EmployeeSkill[]
   goals Goal[]
   checkIns PerformanceCheckIn[]
   learningPlans LearningPlan[]
   pulseResponses PulseResponse[]
-  riskSignals RiskSignal[]\n  workflowTasks WorkflowTask[]\n  id String @id @default(cuid()); employeeCode String @unique; firstName String; lastName String?; email String? @unique; phone String?; department String; designation String; location String; joiningDate DateTime; probationEnd DateTime?; status EmploymentStatus @default(PROBATION); managerId String?; manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id]); reports Employee[] @relation("EmployeeManager"); user User? @relation(fields:[userId],references:[id]); userId String? @unique; applications Application[]; attendances Attendance[]; leaveRequests LeaveRequest[]; payrollItems PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+  riskSignals RiskSignal[]
+  workflowTasks WorkflowTask[]
+  id String @id @default(cuid()); employeeCode String @unique; firstName String; lastName String?; email String? @unique; phone String?; department String; designation String; location String; joiningDate DateTime; probationEnd DateTime?; status EmploymentStatus @default(PROBATION); managerId String?; manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id]); reports Employee[] @relation("EmployeeManager"); user User? @relation(fields:[userId],references:[id]); userId String? @unique; applications Application[]; attendances Attendance[]; leaveRequests LeaveRequest[]; payrollItems PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Job {
-  skillRequirements JobSkill[]\n  id String @id @default(cuid()); title String; department String; location String; description String; openings Int @default(1); active Boolean @default(true); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+  skillRequirements JobSkill[]
+  id String @id @default(cuid()); title String; department String; location String; description String; openings Int @default(1); active Boolean @default(true); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Candidate {
   candidateSkills CandidateSkill[]
-  interviewKits InterviewKit[]\n  id String @id @default(cuid()); name String; email String?; phone String?; resumeUrl String?; skills String?; experience Float?; source String?; status CandidateStatus @default(APPLIED); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+  interviewKits InterviewKit[]
+  id String @id @default(cuid()); name String; email String?; phone String?; resumeUrl String?; skills String?; experience Float?; source String?; status CandidateStatus @default(APPLIED); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Application { id String @id @default(cuid()); jobId String; candidateId String; employeeId String?; status CandidateStatus @default(APPLIED); score Float?; notes String?; job Job @relation(fields:[jobId],references:[id]); candidate Candidate @relation(fields:[candidateId],references:[id]); employee Employee? @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([jobId,candidateId]) }
 model Attendance { id String @id @default(cuid()); employeeId String; date DateTime; status AttendanceStatus; inTime DateTime?; outTime DateTime?; workedMinutes Int?; overtimeMinutes Int?; remarks String?; employee Employee @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([employeeId,date]) }
 model LeaveType { id String @id @default(cuid()); name String @unique; code String @unique; annualQuota Float @default(0); active Boolean @default(true); requests LeaveRequest[] }
