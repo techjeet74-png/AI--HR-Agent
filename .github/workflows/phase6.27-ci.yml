@@ -1,0 +1,16 @@
+name: Phase 6.27 CI
+on:
+  push:
+    branches: [phase-6.27/ai-hr-capacity-forecast]
+  pull_request:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - run: npm ci
+      - run: npx prisma validate
+      - run: npx tsc --noEmit

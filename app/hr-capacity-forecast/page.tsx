@@ -1,0 +1,7 @@
+"use client";
+import {useEffect,useState} from "react";
+export default function CapacityForecast(){
+ const [data,setData]=useState<any[]>([]); const load=()=>fetch("/api/hr-capacity-forecast").then(r=>r.json()).then(setData); useEffect(()=>{load()},[]);
+ async function forecast(){await fetch("/api/hr-capacity-forecast",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({horizonDays:7})});load()}
+ const latest=data?.[0];
+ return <main className="shell"><section className="content"><h1>AI HR Capacity Forecast</h1><p>Forecast team capacity, identify overload risk and recommend sequencing or deadline adjustments.</p><button onClick={forecast}>Run 7-Day Capacity Forecast</button>{latest&&<div className="grid"><div className="card"><b>{latest.utilizationPercent.toFixed(1)}%</b><p>Projected Utilization</p></div><div className="card"><b>{latest.capacityGapHours.toFixed(1)}h</b><p>Capacity Gap</p></div><div className="card"><b>{latest.totalOpenTasks}</b><p>Open Tasks</p></div><div className="card"><b>{latest.riskLevel}</b><p>Risk Level</p></div></div>}{latest&&<div className="card"><h3>{latest.summary}</h3><p>Horizon: {latest.horizonDays} days • Capacity: {latest.totalCapacityHours}h • Required: {latest.requiredHours}h</p></div>}</section></main>}
