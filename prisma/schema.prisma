@@ -498,3 +498,61 @@ model AssetAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model AnalyticsKPI {
+  id String @id @default(cuid())
+  key String @unique
+  name String
+  category String
+  description String?
+  unit String?
+  formula String
+  source String
+  targetValue Float?
+  warningValue Float?
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model AnalyticsSnapshot {
+  id String @id @default(cuid())
+  kpiId String
+  periodStart DateTime
+  periodEnd DateTime
+  value Float
+  target Float?
+  variance Float?
+  metadata Json?
+  kpi AnalyticsKPI @relation(fields:[kpiId],references:[id])
+  createdAt DateTime @default(now())
+  @@unique([kpiId,periodStart,periodEnd])
+  @@index([periodStart,periodEnd])
+}
+model AnalyticsAlert {
+  id String @id @default(cuid())
+  category String
+  severity String
+  title String
+  message String
+  metricKey String?
+  currentValue Float?
+  threshold Float?
+  source Json?
+  status String @default("OPEN")
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([status,severity,createdAt])
+}
+model AnalyticsReport {
+  id String @id @default(cuid())
+  name String
+  reportType String
+  periodStart DateTime
+  periodEnd DateTime
+  filters Json?
+  metrics Json
+  generatedBy String?
+  format String @default("JSON")
+  createdAt DateTime @default(now())
+}
