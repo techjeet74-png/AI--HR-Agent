@@ -557,3 +557,57 @@ model DailyHRBriefing {
   createdAt DateTime @default(now())
   @@unique([briefingDate])
 }
+
+model LegalSource {
+  id String @id @default(cuid())
+  sourceCode String @unique
+  title String
+  authority String
+  jurisdiction String
+  sourceType String
+  effectiveFrom DateTime?
+  effectiveTo DateTime?
+  commencementStatus String
+  fileName String?
+  versionLabel String?
+  citationNote String?
+  active Boolean @default(true)
+  rules ComplianceRule[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model ComplianceRule {
+  id String @id @default(cuid())
+  sourceId String
+  topic String
+  requirement String
+  applicability String
+  evidenceRequired Json?
+  frequency String?
+  deadlineRule String?
+  penaltyNote String?
+  confidence String @default("SOURCE_CONFIRMED")
+  sourceReference String
+  active Boolean @default(true)
+  source LegalSource @relation(fields:[sourceId],references:[id])
+  assessments ComplianceAssessment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([topic,active])
+}
+model ComplianceAssessment {
+  id String @id @default(cuid())
+  ruleId String
+  establishment String?
+  employeeCount Int?
+  assessmentDate DateTime @default(now())
+  status String
+  score Float?
+  finding String
+  evidence Json?
+  remediation Json?
+  reviewer String?
+  rule ComplianceRule @relation(fields:[ruleId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([status,assessmentDate])
+}
