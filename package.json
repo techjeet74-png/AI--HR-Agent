@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
@@ -17,7 +17,7 @@
     "react-dom": "latest",
     "ai": "latest",
     "zod": "latest",
-    "@prisma/client": "7.10.0",
+    "@prisma/client": "6.19.3",
     "bcryptjs": "latest",
     "jose": "latest",
     "@ai-sdk/openai": "latest"
@@ -27,7 +27,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "prisma": "7.10.0",
+    "prisma": "6.19.3",
     "tsx": "latest",
     "@types/bcryptjs": "latest"
   }
