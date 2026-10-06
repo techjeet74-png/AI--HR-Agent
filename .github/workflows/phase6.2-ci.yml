@@ -1,0 +1,23 @@
+name: HR Platform CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "phase-6.2/**"]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agrolt_hr?schema=public
+      AUTH_SECRET: ci-test-secret
+      ADMIN_SEED_PASSWORD: ci-test-password-123
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - run: npx prisma validate
+      - run: npx prisma generate
+      - run: npm run build
