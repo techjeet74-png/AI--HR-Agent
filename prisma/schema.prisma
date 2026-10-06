@@ -78,7 +78,17 @@ model User {
   evaluations CandidateEvaluation[]
   interviewFeedbacks InterviewFeedback[]
   onboardingCases OnboardingCase[]
-  id String @id @default(cuid()); email String @unique; name String; passwordHash String; role Role @default(EMPLOYEE); active Boolean @default(true); employee Employee?; auditLogs AuditLog[]; approvals ApprovalRequest[] @relation("Approver"); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+  id String @id @default(cuid())
+  email String @unique
+  name String
+  passwordHash String
+  role Role @default(EMPLOYEE)
+  active Boolean @default(true)
+  employee Employee?
+  auditLogs AuditLog[]
+  approvals ApprovalRequest[] @relation("Approver")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt }
 
 model Employee {
   skills EmployeeSkill[]
@@ -89,12 +99,43 @@ model Employee {
   riskSignals RiskSignal[]
   workflowTasks WorkflowTask[]
   onboardingCases OnboardingCase[]
-  id String @id @default(cuid()); employeeCode String @unique; firstName String; lastName String?; email String? @unique; phone String?; department String; designation String; location String; joiningDate DateTime; probationEnd DateTime?; status EmploymentStatus @default(PROBATION); managerId String?; manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id]); reports Employee[] @relation("EmployeeManager"); user User? @relation(fields:[userId],references:[id]); userId String? @unique; applications Application[]; attendances Attendance[]; leaveRequests LeaveRequest[]; payrollItems PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+  id String @id @default(cuid())
+  employeeCode String @unique
+  firstName String
+  lastName String?
+  email String? @unique
+  phone String?
+  department String
+  designation String
+  location String
+  joiningDate DateTime
+  probationEnd DateTime?
+  status EmploymentStatus @default(PROBATION)
+  managerId String?
+  manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id])
+  reports Employee[] @relation("EmployeeManager")
+  user User? @relation(fields:[userId],references:[id])
+  userId String? @unique
+  applications Application[]
+  attendances Attendance[]
+  leaveRequests LeaveRequest[]
+  payrollItems PayrollItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt }
 
 model Job {
   skillRequirements JobSkill[]
   evaluations CandidateEvaluation[]
-  id String @id @default(cuid()); title String; department String; location String; description String; openings Int @default(1); active Boolean @default(true); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+  id String @id @default(cuid())
+  title String
+  department String
+  location String
+  description String
+  openings Int @default(1)
+  active Boolean @default(true)
+  applications Application[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt }
 
 model Candidate {
   candidateSkills CandidateSkill[]
@@ -103,7 +144,18 @@ model Candidate {
   onboardingCases OnboardingCase[]
   resumeProfiles ResumeProfile[]
   interviewFeedbacks InterviewFeedback[]
-  id String @id @default(cuid()); name String; email String?; phone String?; resumeUrl String?; skills String?; experience Float?; source String?; status CandidateStatus @default(APPLIED); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+  id String @id @default(cuid())
+  name String
+  email String?
+  phone String?
+  resumeUrl String?
+  skills String?
+  experience Float?
+  source String?
+  status CandidateStatus @default(APPLIED)
+  applications Application[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt }
 
 model Application {
   id String @id @default(cuid())
