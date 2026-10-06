@@ -1,0 +1,2 @@
+import{NextResponse}from"next/server";import{getSession}from"@/lib/auth/session";import{payrollAnomalyScan}from"@/lib/ai/hr-intelligence";
+export async function POST(req:Request){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});const b=await req.json();if(!b.payrollPeriodId)return NextResponse.json({error:"payrollPeriodId required"},{status:400});const anomalies=await payrollAnomalyScan(String(b.payrollPeriodId));return NextResponse.json({count:anomalies.length,anomalies,humanReviewRequired:true});}
