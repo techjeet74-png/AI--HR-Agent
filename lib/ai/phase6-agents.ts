@@ -44,9 +44,10 @@ export function createHRAgent(kind:"copilot"|"recruiting"|"workforce"|"skills") 
   return new ToolLoopAgent({model:openai(modelId),instructions,tools,stopWhen:stepCountIs(6),maxRetries:2});
 }
 
-export async function runLiveAgent(kind:"copilot"|"recruiting"|"workforce"|"skills",prompt:string){
+export async function runLiveAgent(kind:"copilot"|"recruiting"|"workforce"|"skills",prompt:string,requesterId?:string){
   if(!process.env.OPENAI_API_KEY) return {configured:false,text:"Live AI is not configured. Add OPENAI_API_KEY to enable the governed LLM agent.",kind};
   const agent=createHRAgent(kind);
   const result=await agent.generate({prompt});
+  if(requesterId){ const a=await prisma.agent.upsert({where:{key:"phase6-"+kind},update:{enabled:true},create:{key:"phase6-"+kind,name:"Phase 6 "+kind+" Agent",description:"Governed HR intelligence agent",category:kind}}); await prisma.agentRun.create({data:{agentId:a.id,requestedBy:requesterId,input:{prompt},output:{text:result.text},status:"COMPLETED",riskLevel:"LOW",completedAt:new Date()}}); }
   return {configured:true,text:result.text,usage:result.usage};
 }
