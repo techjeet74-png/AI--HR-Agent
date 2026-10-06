@@ -557,3 +557,56 @@ model DailyHRBriefing {
   createdAt DateTime @default(now())
   @@unique([briefingDate])
 }
+
+model ComplianceObligation {
+  id String @id @default(cuid())
+  code String @unique
+  title String
+  category String
+  jurisdiction String @default("Gujarat")
+  frequency String
+  dueRule String
+  applicability String
+  ownerRole String?
+  sourceReference String?
+  sourceDocument String?
+  evidenceRequired Json?
+  riskLevel String @default("MEDIUM")
+  active Boolean @default(true)
+  instances ComplianceInstance[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model ComplianceInstance {
+  id String @id @default(cuid())
+  obligationId String
+  periodLabel String
+  dueDate DateTime
+  completedDate DateTime?
+  status String @default("PENDING")
+  ownerId String?
+  reviewerId String?
+  evidence Json?
+  notes String?
+  riskScore Float?
+  escalationLevel Int @default(0)
+  obligation ComplianceObligation @relation(fields:[obligationId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([obligationId,periodLabel])
+  @@index([dueDate,status])
+}
+model ComplianceEvidence {
+  id String @id @default(cuid())
+  instanceId String
+  fileName String
+  documentType String
+  reference String?
+  uploadedBy String?
+  verifiedBy String?
+  verificationStatus String @default("PENDING")
+  notes String?
+  createdAt DateTime @default(now())
+  instance ComplianceInstance @relation(fields:[instanceId],references:[id])
+  @@index([instanceId,verificationStatus])
+}
