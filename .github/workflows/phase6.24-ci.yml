@@ -1,0 +1,16 @@
+name: Phase 6.24 CI
+on:
+  push:
+    branches: [phase-6.24/ai-hr-task-orchestrator]
+  pull_request:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 20}
+      - run: npm ci
+      - run: npx prisma validate
+      - run: npx tsc --noEmit
