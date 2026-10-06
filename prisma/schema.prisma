@@ -591,6 +591,7 @@ model ComplianceInstance {
   riskScore Float?
   escalationLevel Int @default(0)
   obligation ComplianceObligation @relation(fields:[obligationId],references:[id])
+  filingPackages StatutoryFilingPackage[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([obligationId,periodLabel])
