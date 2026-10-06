@@ -372,3 +372,129 @@ model AttendanceCorrection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model EmployeeLifecycleEvent {
+  id String @id @default(cuid())
+  employeeId String
+  eventType String
+  effectiveDate DateTime
+  previousValue Json?
+  newValue Json?
+  reason String?
+  status String @default("PENDING_APPROVAL")
+  requestedBy String
+  approvedBy String?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([employeeId,eventType,effectiveDate])
+}
+model ProbationReview {
+  id String @id @default(cuid())
+  employeeId String
+  reviewDate DateTime
+  reviewType String
+  performanceScore Float?
+  attendanceScore Float?
+  recommendation String
+  remarks String?
+  status String @default("DRAFT")
+  reviewerId String
+  employee Employee @relation(fields:[employeeId],references:[id])
+  reviewer User @relation(fields:[reviewerId],references:[id])
+  createdAt DateTime @default(now())
+}
+model CompensationRevision {
+  id String @id @default(cuid())
+  employeeId String
+  effectiveDate DateTime
+  oldBasic Decimal @db.Decimal(12,2)
+  oldGross Decimal @db.Decimal(12,2)
+  newBasic Decimal @db.Decimal(12,2)
+  newGross Decimal @db.Decimal(12,2)
+  reason String
+  status String @default("PENDING_APPROVAL")
+  requestedBy String
+  approvedBy String?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([employeeId,effectiveDate])
+}
+model TrainingRecord {
+  id String @id @default(cuid())
+  employeeId String
+  title String
+  category String
+  provider String?
+  scheduledDate DateTime?
+  completedDate DateTime?
+  status String @default("PLANNED")
+  score Float?
+  certificateUrl String?
+  remarks String?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model ExitCase {
+  id String @id @default(cuid())
+  employeeId String
+  resignationDate DateTime?
+  lastWorkingDate DateTime?
+  reason String?
+  exitType String @default("RESIGNATION")
+  status String @default("INITIATED")
+  noticeDays Int?
+  noticeWaiverDays Int?
+  approvedBy String?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  tasks ExitTask[]
+  ffs FullFinalSettlement?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model ExitTask {
+  id String @id @default(cuid())
+  exitCaseId String
+  title String
+  category String
+  required Boolean @default(true)
+  status String @default("PENDING")
+  completedAt DateTime?
+  exitCase ExitCase @relation(fields:[exitCaseId],references:[id])
+}
+model FullFinalSettlement {
+  id String @id @default(cuid())
+  exitCaseId String @unique
+  employeeId String
+  payableSalary Decimal @db.Decimal(12,2) @default(0)
+  leaveEncashment Decimal @db.Decimal(12,2) @default(0)
+  bonus Decimal @db.Decimal(12,2) @default(0)
+  overtime Decimal @db.Decimal(12,2) @default(0)
+  gratuity Decimal @db.Decimal(12,2) @default(0)
+  noticeRecovery Decimal @db.Decimal(12,2) @default(0)
+  deductions Decimal @db.Decimal(12,2) @default(0)
+  grossPayable Decimal @db.Decimal(12,2) @default(0)
+  netPayable Decimal @db.Decimal(12,2) @default(0)
+  status String @default("DRAFT")
+  approvedBy String?
+  paidAt DateTime?
+  exitCase ExitCase @relation(fields:[exitCaseId],references:[id])
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model AssetAssignment {
+  id String @id @default(cuid())
+  employeeId String
+  assetType String
+  assetTag String
+  issuedDate DateTime
+  returnedDate DateTime?
+  conditionOnIssue String?
+  conditionOnReturn String?
+  status String @default("ISSUED")
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
