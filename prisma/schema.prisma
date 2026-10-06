@@ -1,12 +1,76 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
-enum Role { SUPER_ADMIN HR_MANAGER HR_EXECUTIVE RECRUITER PAYROLL AUDITOR MANAGER EMPLOYEE }
-enum EmploymentStatus { ACTIVE PROBATION NOTICE EXITED INACTIVE }
-enum CandidateStatus { APPLIED SCREENING SHORTLISTED INTERVIEW SELECTED OFFERED JOINED REJECTED WITHDRAWN }
-enum ApprovalStatus { PENDING APPROVED REJECTED CANCELLED }
-enum AttendanceStatus { PRESENT ABSENT HALF_DAY LATE WEEK_OFF HOLIDAY ON_LEAVE }
-enum LeaveStatus { PENDING APPROVED REJECTED CANCELLED }
-enum PayrollStatus { DRAFT PROCESSING PENDING_APPROVAL APPROVED PAID LOCKED }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  HR_MANAGER
+  HR_EXECUTIVE
+  RECRUITER
+  PAYROLL
+  AUDITOR
+  MANAGER
+  EMPLOYEE
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  PROBATION
+  NOTICE
+  EXITED
+  INACTIVE
+}
+
+enum CandidateStatus {
+  APPLIED
+  SCREENING
+  SHORTLISTED
+  INTERVIEW
+  SELECTED
+  OFFERED
+  JOINED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LATE
+  WEEK_OFF
+  HOLIDAY
+  ON_LEAVE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PayrollStatus {
+  DRAFT
+  PROCESSING
+  PENDING_APPROVAL
+  APPROVED
+  PAID
+  LOCKED
+}
+
 model User {
   agentRuns AgentRun[]
   notifications Notification[]
@@ -15,6 +79,7 @@ model User {
   interviewFeedbacks InterviewFeedback[]
   onboardingCases OnboardingCase[]
   id String @id @default(cuid()); email String @unique; name String; passwordHash String; role Role @default(EMPLOYEE); active Boolean @default(true); employee Employee?; auditLogs AuditLog[]; approvals ApprovalRequest[] @relation("Approver"); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+
 model Employee {
   skills EmployeeSkill[]
   goals Goal[]
@@ -25,10 +90,12 @@ model Employee {
   workflowTasks WorkflowTask[]
   onboardingCases OnboardingCase[]
   id String @id @default(cuid()); employeeCode String @unique; firstName String; lastName String?; email String? @unique; phone String?; department String; designation String; location String; joiningDate DateTime; probationEnd DateTime?; status EmploymentStatus @default(PROBATION); managerId String?; manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id]); reports Employee[] @relation("EmployeeManager"); user User? @relation(fields:[userId],references:[id]); userId String? @unique; applications Application[]; attendances Attendance[]; leaveRequests LeaveRequest[]; payrollItems PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+
 model Job {
   skillRequirements JobSkill[]
   evaluations CandidateEvaluation[]
   id String @id @default(cuid()); title String; department String; location String; description String; openings Int @default(1); active Boolean @default(true); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
+
 model Candidate {
   candidateSkills CandidateSkill[]
   interviewKits InterviewKit[]
@@ -37,15 +104,134 @@ model Candidate {
   resumeProfiles ResumeProfile[]
   interviewFeedbacks InterviewFeedback[]
   id String @id @default(cuid()); name String; email String?; phone String?; resumeUrl String?; skills String?; experience Float?; source String?; status CandidateStatus @default(APPLIED); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model Application { id String @id @default(cuid()); jobId String; candidateId String; employeeId String?; status CandidateStatus @default(APPLIED); score Float?; notes String?; job Job @relation(fields:[jobId],references:[id]); candidate Candidate @relation(fields:[candidateId],references:[id]); employee Employee? @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; activities RecruitmentActivity[]; @@unique([jobId,candidateId]) }
-model Attendance { id String @id @default(cuid()); employeeId String; date DateTime; status AttendanceStatus; inTime DateTime?; outTime DateTime?; workedMinutes Int?; overtimeMinutes Int?; remarks String?; employee Employee @relation(fields:[employeeId],references:[id]); corrections AttendanceCorrection[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([employeeId,date]) }
-model LeaveType { id String @id @default(cuid()); name String @unique; code String @unique; annualQuota Float @default(0); active Boolean @default(true); requests LeaveRequest[]; balances LeaveBalance[] }
-model LeaveRequest { id String @id @default(cuid()); employeeId String; leaveTypeId String; fromDate DateTime; toDate DateTime; days Float; reason String?; status LeaveStatus @default(PENDING); approvedBy String?; employee Employee @relation(fields:[employeeId],references:[id]); leaveType LeaveType @relation(fields:[leaveTypeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model PayrollPeriod { id String @id @default(cuid()); year Int; month Int; status PayrollStatus @default(DRAFT); approvedAt DateTime?; paidAt DateTime?; items PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([year,month]) }
-model PayrollItem { id String @id @default(cuid()); periodId String; employeeId String; basic Decimal @db.Decimal(12,2); gross Decimal @db.Decimal(12,2); deductions Decimal @db.Decimal(12,2); net Decimal @db.Decimal(12,2); overtimeAmount Decimal @db.Decimal(12,2) @default(0); status PayrollStatus @default(DRAFT); period PayrollPeriod @relation(fields:[periodId],references:[id]); employee Employee @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([periodId,employeeId]) }
-model ComplianceRecord { id String @id @default(cuid()); period String; category String; dueDate DateTime?; status String @default("PENDING"); reference String?; notes String?; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
-model ApprovalRequest { id String @id @default(cuid()); action String; entityType String; entityId String; requestedBy String; approverId String?; status ApprovalStatus @default(PENDING); reason String?; decisionNote String?; requestedAt DateTime @default(now()); decidedAt DateTime?; approver User? @relation("Approver",fields:[approverId],references:[id]) }
-model AuditLog { id String @id @default(cuid()); userId String?; action String; entityType String; entityId String?; metadata Json?; createdAt DateTime @default(now()); user User? @relation(fields:[userId],references:[id]) }
+
+model Application {
+  id String @id @default(cuid())
+  jobId String
+  candidateId String
+  employeeId String?
+  status CandidateStatus @default(APPLIED)
+  score Float?
+  notes String?
+  job Job @relation(fields:[jobId],references:[id])
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  employee Employee? @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  activities RecruitmentActivity[]
+  @@unique([jobId,candidateId])
+}
+
+model Attendance {
+  id String @id @default(cuid())
+  employeeId String
+  date DateTime
+  status AttendanceStatus
+  inTime DateTime?
+  outTime DateTime?
+  workedMinutes Int?
+  overtimeMinutes Int?
+  remarks String?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  corrections AttendanceCorrection[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([employeeId,date])
+}
+
+model LeaveType {
+  id String @id @default(cuid())
+  name String @unique
+  code String @unique
+  annualQuota Float @default(0)
+  active Boolean @default(true)
+  requests LeaveRequest[]
+  balances LeaveBalance[]
+}
+
+model LeaveRequest {
+  id String @id @default(cuid())
+  employeeId String
+  leaveTypeId String
+  fromDate DateTime
+  toDate DateTime
+  days Float
+  reason String?
+  status LeaveStatus @default(PENDING)
+  approvedBy String?
+  employee Employee @relation(fields:[employeeId],references:[id])
+  leaveType LeaveType @relation(fields:[leaveTypeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PayrollPeriod {
+  id String @id @default(cuid())
+  year Int
+  month Int
+  status PayrollStatus @default(DRAFT)
+  approvedAt DateTime?
+  paidAt DateTime?
+  items PayrollItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([year,month])
+}
+
+model PayrollItem {
+  id String @id @default(cuid())
+  periodId String
+  employeeId String
+  basic Decimal @db.Decimal(12,2)
+  gross Decimal @db.Decimal(12,2)
+  deductions Decimal @db.Decimal(12,2)
+  net Decimal @db.Decimal(12,2)
+  overtimeAmount Decimal @db.Decimal(12,2) @default(0)
+  status PayrollStatus @default(DRAFT)
+  period PayrollPeriod @relation(fields:[periodId],references:[id])
+  employee Employee @relation(fields:[employeeId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([periodId,employeeId])
+}
+
+model ComplianceRecord {
+  id String @id @default(cuid())
+  period String
+  category String
+  dueDate DateTime?
+  status String @default("PENDING")
+  reference String?
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ApprovalRequest {
+  id String @id @default(cuid())
+  action String
+  entityType String
+  entityId String
+  requestedBy String
+  approverId String?
+  status ApprovalStatus @default(PENDING)
+  reason String?
+  decisionNote String?
+  requestedAt DateTime @default(now())
+  decidedAt DateTime?
+  approver User? @relation("Approver",fields:[approverId],references:[id])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  userId String?
+  action String
+  entityType String
+  entityId String?
+  metadata Json?
+  createdAt DateTime @default(now())
+  user User? @relation(fields:[userId],references:[id])
+}
 
 model Agent {
   id String @id @default(cuid())
@@ -59,6 +245,7 @@ model Agent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model AgentRun {
   id String @id @default(cuid())
   agentId String
@@ -72,6 +259,7 @@ model AgentRun {
   agent Agent @relation(fields:[agentId],references:[id])
   requester User @relation(fields:[requestedBy],references:[id])
 }
+
 model Skill {
   id String @id @default(cuid())
   name String @unique
@@ -82,6 +270,7 @@ model Skill {
   candidateSkills CandidateSkill[]
   createdAt DateTime @default(now())
 }
+
 model EmployeeSkill {
   id String @id @default(cuid())
   employeeId String
@@ -93,6 +282,7 @@ model EmployeeSkill {
   skill Skill @relation(fields:[skillId],references:[id])
   @@unique([employeeId,skillId])
 }
+
 model JobSkill {
   id String @id @default(cuid())
   jobId String
@@ -103,6 +293,7 @@ model JobSkill {
   skill Skill @relation(fields:[skillId],references:[id])
   @@unique([jobId,skillId])
 }
+
 model CandidateSkill {
   id String @id @default(cuid())
   candidateId String
@@ -113,6 +304,7 @@ model CandidateSkill {
   skill Skill @relation(fields:[skillId],references:[id])
   @@unique([candidateId,skillId])
 }
+
 model Goal {
   id String @id @default(cuid())
   employeeId String
@@ -126,6 +318,7 @@ model Goal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model PerformanceCheckIn {
   id String @id @default(cuid())
   employeeId String
@@ -136,6 +329,7 @@ model PerformanceCheckIn {
   createdAt DateTime @default(now())
   employee Employee @relation(fields:[employeeId],references:[id])
 }
+
 model LearningPlan {
   id String @id @default(cuid())
   employeeId String
@@ -148,6 +342,7 @@ model LearningPlan {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model PulseSurvey {
   id String @id @default(cuid())
   title String
@@ -158,6 +353,7 @@ model PulseSurvey {
   responses PulseResponse[]
   createdAt DateTime @default(now())
 }
+
 model PulseResponse {
   id String @id @default(cuid())
   surveyId String
@@ -169,6 +365,7 @@ model PulseResponse {
   createdAt DateTime @default(now())
   @@unique([surveyId,employeeId])
 }
+
 model RiskSignal {
   id String @id @default(cuid())
   employeeId String
@@ -180,6 +377,7 @@ model RiskSignal {
   employee Employee @relation(fields:[employeeId],references:[id])
   createdAt DateTime @default(now())
 }
+
 model InterviewKit {
   id String @id @default(cuid())
   candidateId String
@@ -203,6 +401,7 @@ model ResumeProfile {
   createdAt DateTime @default(now())
   @@index([candidateId])
 }
+
 model Notification {
   id String @id @default(cuid())
   userId String
@@ -215,6 +414,7 @@ model Notification {
   createdAt DateTime @default(now())
   @@index([userId,status])
 }
+
 model WorkflowTask {
   id String @id @default(cuid())
   userId String?
@@ -230,6 +430,7 @@ model WorkflowTask {
   updatedAt DateTime @updatedAt
   @@index([status,priority])
 }
+
 model KnowledgeDocument {
   id String @id @default(cuid())
   title String
@@ -242,6 +443,7 @@ model KnowledgeDocument {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model KnowledgeChunk {
   id String @id @default(cuid())
   documentId String
@@ -272,6 +474,7 @@ model CandidateEvaluation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model InterviewFeedback {
   id String @id @default(cuid())
   candidateId String
@@ -289,6 +492,7 @@ model InterviewFeedback {
   interviewer User @relation(fields:[interviewerId],references:[id])
   createdAt DateTime @default(now())
 }
+
 model OnboardingCase {
   id String @id @default(cuid())
   candidateId String
@@ -303,6 +507,7 @@ model OnboardingCase {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model OnboardingTask {
   id String @id @default(cuid())
   caseId String
@@ -333,6 +538,7 @@ model EmployeeDocument {
   updatedAt DateTime @updatedAt
   @@index([employeeId,status])
 }
+
 model LeaveBalance {
   id String @id @default(cuid())
   employeeId String
@@ -346,6 +552,7 @@ model LeaveBalance {
   leaveType LeaveType @relation(fields:[leaveTypeId],references:[id])
   @@unique([employeeId,leaveTypeId,year])
 }
+
 model RecruitmentActivity {
   id String @id @default(cuid())
   applicationId String
@@ -357,6 +564,7 @@ model RecruitmentActivity {
   application Application @relation(fields:[applicationId],references:[id])
   createdAt DateTime @default(now())
 }
+
 model AttendanceCorrection {
   id String @id @default(cuid())
   attendanceId String
@@ -389,6 +597,7 @@ model EmployeeLifecycleEvent {
   updatedAt DateTime @updatedAt
   @@index([employeeId,eventType,effectiveDate])
 }
+
 model ProbationReview {
   id String @id @default(cuid())
   employeeId String
@@ -404,6 +613,7 @@ model ProbationReview {
   reviewer User @relation(fields:[reviewerId],references:[id])
   createdAt DateTime @default(now())
 }
+
 model CompensationRevision {
   id String @id @default(cuid())
   employeeId String
@@ -420,6 +630,7 @@ model CompensationRevision {
   createdAt DateTime @default(now())
   @@index([employeeId,effectiveDate])
 }
+
 model TrainingRecord {
   id String @id @default(cuid())
   employeeId String
@@ -436,6 +647,7 @@ model TrainingRecord {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model ExitCase {
   id String @id @default(cuid())
   employeeId String
@@ -453,6 +665,7 @@ model ExitCase {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model ExitTask {
   id String @id @default(cuid())
   exitCaseId String
@@ -463,6 +676,7 @@ model ExitTask {
   completedAt DateTime?
   exitCase ExitCase @relation(fields:[exitCaseId],references:[id])
 }
+
 model FullFinalSettlement {
   id String @id @default(cuid())
   exitCaseId String @unique
@@ -484,6 +698,7 @@ model FullFinalSettlement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model AssetAssignment {
   id String @id @default(cuid())
   employeeId String
@@ -513,6 +728,7 @@ model ControlTowerInsight {
   expiresAt DateTime?
   @@index([status,severity,createdAt])
 }
+
 model PredictiveSignal {
   id String @id @default(cuid())
   signalType String
@@ -529,6 +745,7 @@ model PredictiveSignal {
   createdAt DateTime @default(now())
   @@index([signalType,severity,createdAt])
 }
+
 model HRAIAction {
   id String @id @default(cuid())
   title String
@@ -544,6 +761,7 @@ model HRAIAction {
   createdAt DateTime @default(now())
   @@index([status,riskLevel,createdAt])
 }
+
 model DailyHRBriefing {
   id String @id @default(cuid())
   briefingDate DateTime
@@ -577,6 +795,7 @@ model ComplianceObligation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model ComplianceInstance {
   id String @id @default(cuid())
   obligationId String
@@ -596,6 +815,7 @@ model ComplianceInstance {
   @@unique([obligationId,periodLabel])
   @@index([dueDate,status])
 }
+
 model ComplianceEvidence {
   id String @id @default(cuid())
   instanceId String
@@ -627,6 +847,7 @@ model ReconciliationRun {
   exceptions ReconciliationException[]
   @@index([periodLabel,category,status])
 }
+
 model ReconciliationException {
   id String @id @default(cuid())
   runId String
@@ -650,6 +871,7 @@ model ReconciliationException {
   @@index([runId,status,severity])
   @@index([employeeId,exceptionType])
 }
+
 model ReconciliationCapa {
   id String @id @default(cuid())
   exceptionId String
