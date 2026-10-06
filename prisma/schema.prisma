@@ -720,6 +720,9 @@ model HROrchestratedTask {
   completionNote String?
   goal HRTaskGoal? @relation(fields:[goalId],references:[id])
   escalations HRTaskEscalation[]
+  priorityScores HRTaskPriorityScore[]
+  assignmentRecommendations HRTaskAssignmentRecommendation[]
+  deadlineRecommendations HRTaskDeadlineRecommendation[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([assigneeUserId,status,dueDate])
@@ -790,6 +793,7 @@ model HRCapacityForecast {
   summary String
   evidence Json
   generatedAt DateTime @default(now())
+  actions HRCapacityAction[]
   @@index([forecastDate,horizonDays,riskLevel])
 }
 
