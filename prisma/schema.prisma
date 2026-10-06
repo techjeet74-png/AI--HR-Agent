@@ -23,10 +23,13 @@ model Employee {
   id String @id @default(cuid()); employeeCode String @unique; firstName String; lastName String?; email String? @unique; phone String?; department String; designation String; location String; joiningDate DateTime; probationEnd DateTime?; status EmploymentStatus @default(PROBATION); managerId String?; manager Employee? @relation("EmployeeManager",fields:[managerId],references:[id]); reports Employee[] @relation("EmployeeManager"); user User? @relation(fields:[userId],references:[id]); userId String? @unique; applications Application[]; attendances Attendance[]; leaveRequests LeaveRequest[]; payrollItems PayrollItem[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Job {
   skillRequirements JobSkill[]
+  evaluations CandidateEvaluation[]
   id String @id @default(cuid()); title String; department String; location String; description String; openings Int @default(1); active Boolean @default(true); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Candidate {
   candidateSkills CandidateSkill[]
   interviewKits InterviewKit[]
+  evaluations CandidateEvaluation[]
+  onboardingCases OnboardingCase[]
   id String @id @default(cuid()); name String; email String?; phone String?; resumeUrl String?; skills String?; experience Float?; source String?; status CandidateStatus @default(APPLIED); applications Application[]; createdAt DateTime @default(now()); updatedAt DateTime @updatedAt }
 model Application { id String @id @default(cuid()); jobId String; candidateId String; employeeId String?; status CandidateStatus @default(APPLIED); score Float?; notes String?; job Job @relation(fields:[jobId],references:[id]); candidate Candidate @relation(fields:[candidateId],references:[id]); employee Employee? @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([jobId,candidateId]) }
 model Attendance { id String @id @default(cuid()); employeeId String; date DateTime; status AttendanceStatus; inTime DateTime?; outTime DateTime?; workedMinutes Int?; overtimeMinutes Int?; remarks String?; employee Employee @relation(fields:[employeeId],references:[id]); createdAt DateTime @default(now()); updatedAt DateTime @updatedAt; @@unique([employeeId,date]) }
@@ -242,4 +245,68 @@ model KnowledgeChunk {
   document KnowledgeDocument @relation(fields:[documentId],references:[id])
   createdAt DateTime @default(now())
   @@index([documentId,chunkIndex])
+}
+
+model CandidateEvaluation {
+  id String @id @default(cuid())
+  candidateId String
+  jobId String
+  evaluatorId String
+  skillScore Float @default(0)
+  interviewScore Float @default(0)
+  overallScore Float @default(0)
+  strengths Json?
+  gaps Json?
+  recommendation String?
+  rationale String?
+  status String @default("DRAFT")
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  job Job @relation(fields:[jobId],references:[id])
+  evaluator User @relation(fields:[evaluatorId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model InterviewFeedback {
+  id String @id @default(cuid())
+  candidateId String
+  interviewerId String
+  role String
+  technicalScore Float?
+  communicationScore Float?
+  problemSolvingScore Float?
+  ownershipScore Float?
+  overallScore Float?
+  strengths String?
+  concerns String?
+  recommendation String?
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  interviewer User @relation(fields:[interviewerId],references:[id])
+  createdAt DateTime @default(now())
+}
+model OnboardingCase {
+  id String @id @default(cuid())
+  candidateId String
+  employeeId String?
+  status String @default("PREBOARDING")
+  startDate DateTime?
+  ownerId String
+  candidate Candidate @relation(fields:[candidateId],references:[id])
+  employee Employee? @relation(fields:[employeeId],references:[id])
+  owner User @relation(fields:[ownerId],references:[id])
+  tasks OnboardingTask[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model OnboardingTask {
+  id String @id @default(cuid())
+  caseId String
+  title String
+  category String
+  required Boolean @default(true)
+  status String @default("PENDING")
+  dueDate DateTime?
+  completedAt DateTime?
+  case OnboardingCase @relation(fields:[caseId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
