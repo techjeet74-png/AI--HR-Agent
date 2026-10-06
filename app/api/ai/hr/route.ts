@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {answerHR} from "@/lib/ai/hr-agent";import {getSession} from "@/lib/auth/session";
+export async function POST(req:Request){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});const {query}=await req.json().catch(()=>({}));if(typeof query!=="string"||!query.trim())return NextResponse.json({error:"query is required"},{status:400});return NextResponse.json(await answerHR(query));}
