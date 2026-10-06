@@ -689,3 +689,60 @@ model ComplianceRiskAlert {
   @@index([status,severity,createdAt])
   @@index([category,alertType,createdAt])
 }
+
+model HRDailyWorkPlan {
+  id String @id @default(cuid())
+  workDate DateTime
+  employeeId String?
+  userId String?
+  status String @default("OPEN")
+  prioritySummary Json?
+  generatedTasks Json?
+  completedTasks Json?
+  overdueTasks Json?
+  notes String?
+  generatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([workDate,userId])
+  @@index([workDate,status])
+}
+model HREndOfDayReport {
+  id String @id @default(cuid())
+  workDate DateTime
+  userId String
+  completedCount Int @default(0)
+  pendingCount Int @default(0)
+  blockedCount Int @default(0)
+  summary String?
+  achievements Json?
+  pendingTasks Json?
+  blockers Json?
+  nextDayPriorities Json?
+  status String @default("SUBMITTED")
+  managerReviewedBy String?
+  managerReviewedAt DateTime?
+  managerNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([workDate,userId])
+  @@index([workDate,status])
+}
+model HRDailyManagerBriefing {
+  id String @id @default(cuid())
+  workDate DateTime @unique
+  executiveSummary String
+  teamMetrics Json
+  overdueItems Json
+  blockers Json
+  achievements Json
+  priorityActions Json
+  missingEndOfDayReports Json
+  status String @default("DRAFT")
+  preparedBy String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  managerNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
