@@ -756,3 +756,23 @@ model HRTaskPriorityScore {
   @@index([taskId,generatedAt])
   @@index([priorityBand,score])
 }
+
+model HRTaskAssignmentRecommendation {
+  id String @id @default(cuid())
+  taskId String
+  recommendedUserId String
+  recommendedEmployeeId String?
+  workloadScore Float
+  skillFitScore Float
+  responsibilityScore Float
+  availabilityScore Float
+  priorityFitScore Float
+  totalScore Float
+  rationale String
+  status String @default("RECOMMENDED")
+  selectedAt DateTime?
+  generatedAt DateTime @default(now())
+  task HROrchestratedTask @relation(fields:[taskId],references:[id])
+  @@index([taskId,totalScore])
+  @@index([recommendedUserId,status])
+}
