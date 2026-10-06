@@ -498,3 +498,62 @@ model AssetAssignment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model ControlTowerInsight {
+  id String @id @default(cuid())
+  category String
+  severity String
+  title String
+  summary String
+  evidence Json
+  confidence Float
+  recommendedActions Json?
+  status String @default("OPEN")
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+  @@index([status,severity,createdAt])
+}
+model PredictiveSignal {
+  id String @id @default(cuid())
+  signalType String
+  subjectType String
+  subjectId String?
+  horizonDays Int
+  probability Float
+  severity String
+  confidence Float
+  forecastValue Float?
+  evidence Json
+  recommendation String?
+  status String @default("REVIEW")
+  createdAt DateTime @default(now())
+  @@index([signalType,severity,createdAt])
+}
+model HRAIAction {
+  id String @id @default(cuid())
+  title String
+  category String
+  riskLevel String
+  rationale String
+  actionPayload Json?
+  status String @default("PENDING_APPROVAL")
+  requestedBy String?
+  approvedBy String?
+  approvedAt DateTime?
+  executedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([status,riskLevel,createdAt])
+}
+model DailyHRBriefing {
+  id String @id @default(cuid())
+  briefingDate DateTime
+  headline String
+  summary String
+  priorities Json
+  metrics Json
+  risks Json
+  recommendations Json
+  generatedBy String?
+  createdAt DateTime @default(now())
+  @@unique([briefingDate])
+}
