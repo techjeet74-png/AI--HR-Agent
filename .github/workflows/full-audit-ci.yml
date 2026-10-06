@@ -1,0 +1,22 @@
+name: Full Project Audit CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [audit/fix-project-wide]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agrolt_hr?schema=public
+      AUTH_SECRET: ci-audit-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx prisma validate
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npm run build
