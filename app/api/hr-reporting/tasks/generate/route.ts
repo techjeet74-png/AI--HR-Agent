@@ -1,1 +1,14 @@
-import{NextResponse}from"next/server";import{getSession}from"@/lib/auth/session";import{generateHRReportingTasks}from"@/lib/hr-reporting/task-generator";export async function POST(req:Request){const s=await getSession();if(!s)return NextResponse.json({error:"Unauthorized"},{status:401});const b=await req.json();if(!b.periodLabel||!Array.isArray(b.assigneeIds)||!b.dueDate)return NextResponse.json({error:"periodLabel, assigneeIds[] and dueDate required"},{status:400});return NextResponse.json(await generateHRReportingTasks(String(b.periodLabel),b.assigneeIds,new Date(b.dueDate)),{status:201});}}
+import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth/session";
+import { generateHRReportingTasks } from "@/lib/hr-reporting/task-generator";
+
+export async function POST(req: Request) {
+  const s = await getSession();
+  if (!s) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const b = await req.json();
+  if (!b.periodLabel || !Array.isArray(b.assigneeIds) || !b.dueDate) {
+    return NextResponse.json({ error: "periodLabel, assigneeIds[] and dueDate required" }, { status: 400 });
+  }
+  const result = await generateHRReportingTasks(String(b.periodLabel), b.assigneeIds, new Date(b.dueDate));
+  return NextResponse.json(result, { status: 201 });
+}
