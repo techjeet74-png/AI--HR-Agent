@@ -72,6 +72,8 @@ enum PayrollStatus {
 }
 
 model User {
+  recruitmentActivities RecruitmentActivity[]
+  probationReviews ProbationReview[]
   agentRuns AgentRun[]
   notifications Notification[]
   workflowTasks WorkflowTask[]
@@ -92,6 +94,15 @@ model User {
 }
 
 model Employee {
+  employeeDocuments EmployeeDocument[]
+  leaveBalances LeaveBalance[]
+  lifecycleEvents EmployeeLifecycleEvent[]
+  probationReviews ProbationReview[]
+  compensationRevisions CompensationRevision[]
+  trainingRecords TrainingRecord[]
+  exitCases ExitCase[]
+  finalSettlements FullFinalSettlement[]
+  assetAssignments AssetAssignment[]
   skills EmployeeSkill[]
   goals Goal[]
   checkIns PerformanceCheckIn[]
@@ -853,6 +864,7 @@ model ComplianceObligation {
 }
 
 model ComplianceInstance {
+  evidenceItems ComplianceEvidence[]
   id String @id @default(cuid())
   obligationId String
   periodLabel String
@@ -905,6 +917,7 @@ model ReconciliationRun {
 }
 
 model ReconciliationException {
+  capas ReconciliationCapa[]
   id String @id @default(cuid())
   runId String
   employeeId String?
